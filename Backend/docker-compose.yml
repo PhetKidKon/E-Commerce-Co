@@ -1,0 +1,47 @@
+# Backend services only. The Kong gateway lives in Gateway/ with its own compose.
+# Both compose files share the external "ecommerce" network, so Kong can reach
+# these services by name. Create it once:  docker network create ecommerce
+#
+# Only the gateway is exposed to the host; these services have no published ports.
+
+services:
+  user-service:
+    build:
+      context: .
+      dockerfile: User-Service/Dockerfile
+    environment:
+      - PORT=8081
+    networks:
+      - ecommerce
+
+  product-service:
+    build:
+      context: .
+      dockerfile: Product-Service/Dockerfile
+    environment:
+      - PORT=8082
+    networks:
+      - ecommerce
+
+  cart-service:
+    build:
+      context: .
+      dockerfile: Cart-Service/Dockerfile
+    environment:
+      - PORT=8083
+    networks:
+      - ecommerce
+
+  inventory-service:
+    build:
+      context: .
+      dockerfile: Inventory-Service/Dockerfile
+    environment:
+      - PORT=8084
+    networks:
+      - ecommerce
+
+networks:
+  ecommerce:
+    external: true
+    name: ecommerce

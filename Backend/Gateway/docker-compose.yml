@@ -1,0 +1,39 @@
+# Gateway deployment: nginx (edge reverse proxy / load balancer) in front of
+# Kong (API gateway, db-less). Self-contained; shares the external "ecommerce"
+# network so Kong can reach the backend services by name.
+#
+#   docker network create ecommerce          # once (if not created yet)
+#   docker compose up --build                 # from this Gateway/ folder
+#
+# Public entry is nginx on :8080. Kong's proxy port (8000) stays internal.
+
+services:
+  nginx:
+    build: ./nginx
+    ports:
+      - "8080:80"           # public entry -> frontend calls http://localhost:8080
+    depends_on:
+      - kong
+    networks:
+      - ecommerce
+
+  kong:
+    build: .
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /kong/kong.yml
+      KONG_PROXY_LISTEN: "0.0.0.0:8000"
+      KONG_ADMIN_LISTEN: "0.0.0.0:8001"
+      # Enable the custom Lua plugin later:
+      # KONG_PLUGINS: "bundled,custom-auth"
+    volumes:
+      - ./kong:/kong:ro
+    ports:
+      - "8001:8001"         # Kong admin API (dev only); proxy 8000 stays internal
+    networks:
+      - ecommerce
+
+networks:
+  ecommerce:
+    external: true
+    name: ecommerce

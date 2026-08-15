@@ -1,0 +1,38 @@
+# Kong db-less (declarative) configuration.
+# strip_path: false  -> forward the full /api/... path to the service,
+# because our services serve their routes under /api/<resource>.
+_format_version: "3.0"
+_transform: true
+
+services:
+  - name: user-service
+    url: http://user-service:8081
+    routes:
+      - name: user-route
+        paths:
+          - /api/users
+        strip_path: false
+
+  - name: product-service
+    url: http://product-service:8082
+    routes:
+      - name: product-route
+        paths:
+          - /api/products
+        strip_path: false
+
+  - name: cart-service
+    url: http://cart-service:8083
+    routes:
+      - name: cart-route
+        paths:
+          - /api/cart
+        strip_path: false
+
+  - name: inventory-service
+    url: http://inventory-service:8084
+    routes:
+      - name: inventory-route
+        paths:
+          - /api/inventory
+        strip_path: false

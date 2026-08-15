@@ -1,0 +1,9 @@
+go 1.22
+
+use (
+	./Common-Service
+	./User-Service
+	./Product-Service
+	./Cart-Service
+	./Inventory-Service
+)
