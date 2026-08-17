@@ -1,32 +1,26 @@
 package main
 
 import (
-	"log"
+	"log/slog"
 	"net/http"
-	"os"
 
+	"github.com/kidkon/ecommerce/common/config"
+	"github.com/kidkon/ecommerce/common/logger"
 	"github.com/kidkon/ecommerce/common/response"
 )
 
-const serviceName = "user-service"
-
 func main() {
-	mux := http.NewServeMux()
+	// wire shared common packages (bare — just proves the connection works)
+	logger.Setup("user-service", config.Get("LOG_LEVEL", "info"))
 
+	mux := http.NewServeMux()
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		response.Success(w, "ok", map[string]string{"service": serviceName})
+		response.OK(w, map[string]string{"service": "user-service"})
 	})
 
-	port := getenv("PORT", "8081")
-	log.Printf("[%s] listening on :%s", serviceName, port)
+	port := config.Get("PORT", "8081")
+	slog.Info("service starting", "port", port)
 	if err := http.ListenAndServe(":"+port, mux); err != nil {
-		log.Fatal(err)
+		slog.Error("server stopped", "err", err)
 	}
-}
-
-func getenv(key, def string) string {
-	if v := os.Getenv(key); v != "" {
-		return v
-	}
-	return def
 }
