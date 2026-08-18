@@ -31,6 +31,9 @@ func main() {
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		response.OK(w, map[string]string{"service": "user-service"})
 	})
+	mux.HandleFunc("/api/users", func(w http.ResponseWriter, r *http.Request) {
+		response.OK(w, map[string]string{"service": "user-service"})
+	})
 
 	port := config.Get("PORT", "8081")
 	slog.Info("service starting", "port", port)
