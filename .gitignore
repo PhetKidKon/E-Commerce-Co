@@ -1,0 +1,34 @@
+# ---- Env (ไฟล์ลับ: ไม่ commit ตัวจริง, commit แค่ .example) ----
+.env
+.env.local
+.env.*.local
+*.env
+!.env.example
+
+# ---- Go ----
+/bin/
+*.exe
+*.test
+*.out
+go.work.sum
+# หมายเหตุ: go.work commit ไว้ (ทีมใช้ build ร่วมกัน)
+
+# ---- Node / Frontend ----
+node_modules/
+dist/
+dist-ssr/
+.vite/
+*.local
+
+# ---- Editor / OS ----
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# ---- Project ----
+Backend/_to_delete
+
+# ---- อื่น ๆ ---
+ROADMAP.md
