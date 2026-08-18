@@ -1,17 +1,31 @@
 package main
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
+	"os"
 
 	"github.com/kidkon/ecommerce/common/config"
+	"github.com/kidkon/ecommerce/common/database"
 	"github.com/kidkon/ecommerce/common/logger"
 	"github.com/kidkon/ecommerce/common/response"
 )
 
 func main() {
-	// wire shared common packages (bare — just proves the connection works)
+	// load Backend/.env (local dev) then set up the shared logger
+	config.LoadDotenv()
 	logger.Setup("user-service", config.Get("LOG_LEVEL", "info"))
+
+	// connect to Postgres at startup (no handlers yet — just prove connectivity)
+	ctx := context.Background()
+	pool, err := database.ConnectFromEnv(ctx)
+	if err != nil {
+		slog.Error("database connection failed", "err", err)
+		os.Exit(1) // fail fast: a service without its DB can't do its job
+	}
+	defer pool.Close()
+	slog.Info("database connected")
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
