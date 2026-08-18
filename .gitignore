@@ -3,6 +3,7 @@
 .env.local
 .env.*.local
 *.env
+/Backend/env
 !.env.example
 
 # ---- Go ----
