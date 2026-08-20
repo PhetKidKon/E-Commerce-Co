@@ -1,16 +1,46 @@
-# Backend services only. The Kong gateway lives in Gateway/ with its own compose.
-# Both compose files share the external "ecommerce" network, so Kong can reach
-# these services by name. Create it once:  docker network create ecommerce
+# Backend services + PostgreSQL. Shares the external "ecommerce" network with
+# the Gateway compose so Kong can reach the services by name.
+#   docker network create ecommerce          # ครั้งเดียว (ถ้ายังไม่มี)
+#   docker compose up -d postgres            # รันแค่ DB (สำหรับ dev แบบ go run)
+#   docker compose up --build -d             # รันทุกอย่าง (services + DB)
 #
-# Only the gateway is exposed to the host; these services have no published ports.
+# ค่า ${DB_*} ดึงจาก Backend/.env อัตโนมัติ (compose อ่าน .env ในโฟลเดอร์เดียวกัน)
 
 services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5432:5432"                 # เปิดออก host เพื่อให้ service ที่รัน local (go run) ต่อได้
+    volumes:
+      - pgdata:/var/lib/postgresql/data   # เก็บข้อมูลถาวร (ไม่หายเมื่อ container ดับ)
+    healthcheck:                     # ให้ service รอจน DB พร้อมจริงก่อนค่อยเชื่อม
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - ecommerce
+
   user-service:
     build:
       context: .
       dockerfile: User-Service/Dockerfile
     environment:
       - PORT=8081
+      - DB_HOST=postgres            # ใน docker ชี้ที่ชื่อ service (ไม่ใช่ localhost)
+      - DB_PORT=5432
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DB_SSLMODE=${DB_SSLMODE:-disable}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    depends_on:
+      postgres:
+        condition: service_healthy  # รอ DB พร้อมก่อน (กัน fail-fast ตอน startup)
     networks:
       - ecommerce
 
@@ -20,6 +50,16 @@ services:
       dockerfile: Product-Service/Dockerfile
     environment:
       - PORT=8082
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DB_SSLMODE=${DB_SSLMODE:-disable}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    depends_on:
+      postgres:
+        condition: service_healthy
     networks:
       - ecommerce
 
@@ -29,6 +69,16 @@ services:
       dockerfile: Cart-Service/Dockerfile
     environment:
       - PORT=8083
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DB_SSLMODE=${DB_SSLMODE:-disable}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    depends_on:
+      postgres:
+        condition: service_healthy
     networks:
       - ecommerce
 
@@ -38,8 +88,21 @@ services:
       dockerfile: Inventory-Service/Dockerfile
     environment:
       - PORT=8084
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DB_SSLMODE=${DB_SSLMODE:-disable}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    depends_on:
+      postgres:
+        condition: service_healthy
     networks:
       - ecommerce
+
+volumes:
+  pgdata:
 
 networks:
   ecommerce:

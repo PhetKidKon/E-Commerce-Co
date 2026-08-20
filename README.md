@@ -110,3 +110,18 @@ cd Backend         && docker compose down
 - Kong เป็น db-less — แก้ routing ที่ `Gateway/kong/kong.yml` ได้ตรงๆ (แก้แล้ว restart container พอ ไม่ต้อง rebuild)
 - เปิด custom Lua plugin ทีหลัง: ปลด comment `KONG_PLUGINS: "bundled,custom-auth"` ใน `Gateway/docker-compose.yml`
 - module path: `github.com/kidkon/ecommerce/*` (resolve เป็น local ผ่าน go.work ไม่ได้โหลดจาก GitHub)
+
+---
+
+## Database ** ใช้กรณีรัน docker **
+
+Postgres รันผ่าน docker-compose (`Backend/docker-compose.yml`) — service ชื่อ `postgres`,
+เก็บข้อมูลถาวรใน volume `pgdata`, ค่าต่างๆ ดึงจาก `Backend/.env`
+
+```bash
+cd Backend
+docker network create ecommerce   # ครั้งแรกครั้งเดียว (ถ้ายังไม่มี)
+docker compose up -d postgres      # เปิดเฉพาะ Postgres ที่ localhost:5432
+```
+
+จากนั้น `go run ./User-Service` จะต่อ DB ผ่าน `.env` (`DB_HOST=localhost`)
