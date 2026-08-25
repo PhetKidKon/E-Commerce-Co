@@ -40,14 +40,14 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var body struct {
-		Login    string `json:"login"`
+		Username string `json:"username"`
 		Password string `json:"password"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		response.Fail(w, response.BadRequest("invalid json body"))
 		return
 	}
-	res, err := h.svc.Login(r.Context(), body.Login, body.Password)
+	res, err := h.svc.Login(r.Context(), body.Username, body.Password)
 	if err != nil {
 		response.Fail(w, err)
 		return
