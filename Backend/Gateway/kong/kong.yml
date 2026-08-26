@@ -10,7 +10,7 @@ services:
     routes:
       - name: user-route
         paths:
-          - /api/users
+          - /api/auth
         strip_path: false
 
   - name: product-service
